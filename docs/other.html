@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Partycover's Works</title>
+<style>
+body {
+  font-family: Georgia, "Times New Roman", serif;
+  max-width: 640px;
+  margin: 40px auto;
+  padding: 0 20px;
+  color: #222;
+  line-height: 1.5;
+}
+h1 {
+  margin-bottom: 4px;
+}
+.tagline {
+  color: #555;
+  font-style: italic;
+  margin-top: 0;
+}
+hr {
+  border: none;
+  border-top: 1px solid #ccc;
+  margin: 24px 0;
+}
+ul.contents li {
+  margin-bottom: 6px;
+}
+a {
+  color: #1a5276;
+}
+.footer {
+  margin-top: 40px;
+  font-size: 0.85em;
+  color: #777;
+}
+
+#venamImage {
+  width: 540px;
+  height: 360px;
+  object-fit: contain;
+  background-color: #f9f9f9;
+}
+</style>
+</head>
+<body>
+
+<h1>About Older Versions</h1>
+<ol class="contents">
+  <li><a href="about.html">The Evolution of Venam's Gym</a></li>
+</ol>
+
+<h2>The Evolution of Venam's Gym</h2>
+<img width="" height="" id="venamImage" src="venamImage1.webp" alt="Venam's Gym">
+<br>
+<button onclick="changeImage(-1, 'venamImage', 1, 6)">Previous</button>
+<button onclick="changeImage(1, 'venamImage', 1, 6)">Next</button>
+
+<hr>
+
+<h2>Contents</h2>
+<ul class="contents">
+  <li><a href="about.html">About Older Versions</a></li>
+  <li><a href="videos.html">Older Version Videos</a></li>
+  <li><a href="other.html">Older Version (Other)</a></li>
+  <li><a href="tools.html">Older Version Tools</a></li>
+</ul>
+
+<hr>
+
+<p class="footer">Partycover's Works 2026</p>
+
+</body>
+
+<script>
+  function changeImage(direction, tag, minImage, maxImage) {
+    const imgElement = document.getElementById(tag);
+    const currentSrc = imgElement.getAttribute('src');
+    
+    const match = currentSrc.match(/(\d+)\.webp/);
+    
+    let currentImageNum = match ? parseInt(match[1], 10) : minImage;
+
+    currentImageNum += direction;
+
+    if (currentImageNum < minImage) {
+      currentImageNum = minImage;
+    } else if (currentImageNum > maxImage) {
+      currentImageNum = maxImage;
+    }
+
+    imgElement.src = tag + currentImageNum + '.webp';
+  }
+</script>
+</html>

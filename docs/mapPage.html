@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Partycover's Works</title>
+<style>
+body {
+  font-family: Georgia, "Times New Roman", serif; /* best font tbh*/
+  margin: 0; 
+  padding: 20px;
+  color: #222;
+  line-height: 1.5;
+  box-sizing: border-box;
+}
+h1 { margin-bottom: 4px; }
+.tagline { color: #555; font-style: italic; margin-top: 0; }
+a { color: #1a5276; }
+
+.split-layout {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  max-width: 1400px;
+  margin: 40px auto; 
+  gap: 40px; 
+}
+
+.half-pane {
+  flex: 1; 
+  display: flex;
+  flex-direction: column;
+  align-items: center; 
+  justify-content: center; 
+}
+
+.map-container {
+  position: relative;     
+  display: inline-block;  
+  cursor: none;           
+}
+
+.map-container .base-map {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+#custom-cursor {
+  position: absolute;
+  pointer-events: none; 
+  transform: translate(-50%, -50%); 
+  display: none; 
+  z-index: 10;
+}
+
+.map-labels {
+  margin-top: 20px;
+  text-align: center;
+}
+.map-labels p {
+  margin: 4px 0;
+  min-height: 24px; 
+  font-weight: bold;
+}
+
+.mini-page-frame {
+  width: 100%;
+  max-width: 600px;
+  height: 600px; 
+  border: 2px solid #ccc;
+  border-radius: 8px; 
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+</style>
+</head>
+<body>
+
+<div class="split-layout">
+  
+  <div class="half-pane">
+    <div class="map-container" id="mapWrapper">
+      <img src="fullMap.png" alt="Map" class="base-map">
+      <img src="mapCursor.png" alt="Cursor" id="custom-cursor">
+    </div>
+
+    <div class="map-labels">
+      <p id="hoverLabel"></p>
+      <p id="clickLabel"></p>
+    </div>
+  </div>
+
+  <div class="half-pane">
+    <iframe id="iframe" src="Aevium.html" class="mini-page-frame" title="Mini HTML Page"></iframe>
+  </div>
+
+</div>
+
+<script>
+  const wrapper = document.getElementById('mapWrapper');
+  const cursor = document.getElementById('custom-cursor');
+  const hoverLabel = document.getElementById('hoverLabel');
+  const clickLabel = document.getElementById('clickLabel');
+  const iframeElement = document.getElementById('iframe'); // Grab the iframe
+
+  //coordinate data
+  const mapLocations = [
+    //Badlands
+    { x: 102, y: 70, name: "Eclysia Pyramid" },
+    { x: 54,  y: 118, name: "Reldin Island" },
+    { x: 104, y: 184, name: "Alamissa Urben" },
+    { x: 120, y: 184, name: "Voidal Chasm" },
+    { x: 72,  y: 200, name: "Sand Stream Cave" },
+    { x: 54,  y: 215, name: "Sashila Village" },
+    { x: 104, y: 232, name: "Zorrialyn Labyrinth" },
+    { x: 88,  y: 248, name: "Strange House" },
+    { x: 90,  y: 218, name: "Zorilayn Coast" },
+    { x: 106, y: 218, name: "Fort Rystrine" },
+    { x: 106, y: 170, name: "Zone Zero Outskirts" },
+
+    { x: 122, y: 218, name: "Zorrialyn Desert" },
+    { x: 246, y: 278, name: "Rose Theatre" },
+    { x: 246, y: 298, name: "Forlorned Cavern" },
+    
+    //Terrial Islands
+    { x: 214, y: 310, name: "Grand Dream City" },
+    { x: 230, y: 310, name: "Grand Dream City" },
+    { x: 246, y: 310, name: "Grand Dream City" },
+    { x: 249, y: 310, name: "Grand Dream City" },
+    { x: 214, y: 326, name: "Grand Dream City" },
+    { x: 230, y: 326, name: "Grand Dream City" },
+    { x: 246, y: 326, name: "Grand Dream City" },
+    { x: 249, y: 326, name: "Grand Dream City" },
+    { x: 214, y: 339, name: "Grand Dream City" },
+    { x: 230, y: 339, name: "Grand Dream City" },
+    { x: 246, y: 339, name: "Grand Dream City" },
+    { x: 249, y: 339, name: "Grand Dream City" },
+    
+    { x: 234, y: 236, name: "Grand Dream Gate" },
+    { x: 216, y: 344, name: "Honec Woods" },
+    { x: 234, y: 362, name: "Yui's Ranch" },
+    
+    { x: 202, y: 362, name: "Darchlight Woods" },
+    { x: 186, y: 378, name: "Darchlight Woods" },
+    { x: 202, y: 378, name: "Darchlight Woods" },
+    { x: 170, y: 362, name: "Darchlight Woods" },
+    { x: 154, y: 378, name: "Darchlight Woods" },
+    
+    { x: 138, y: 378, name: "Route 8" },
+    { x: 218, y: 378, name: "Luck's Tent" },
+    { x: 234, y: 378, name: "Route 7" },
+    { x: 230, y: 398, name: "Oblitus Town" },
+
+    { x: 166, y: 374, name: "Darchlight Village"},
+    { x: 170, y: 436, name: "Kingdom of Goomidra"},
+
+    //Florisia? (idk probably made a typo)
+    { x: 440, y: 232, name: "Evergreen Forest" },
+    { x: 424, y: 232, name: "Evergreen Trench" }, 
+    { x: 442, y: 250, name: "Evergreen Island" },
+    { x: 458, y: 250, name: "Evergreen Cave (North)" },
+    { x: 442, y: 266, name: "Evergreen Cave (South)" },
+    { x: 458, y: 266, name: "Seabound Cave" },
+    { x: 442, y: 282, name: "Route 11" },
+    { x: 422, y: 278, name: "Akuwa Town" },
+    { x: 426, y: 314, name: "Akuwa Town Gate" },
+    { x: 426, y: 362, name: "Route 4" },
+    { x: 426, y: 410, name: "Odd Tower" },
+    { x: 422, y: 422, name: "Goldeanleaf Town" },
+    { x: 442, y: 426, name: "Goldeanleaf Gate" },
+    { x: 394, y: 426, name: "Wispy Path" },
+    { x: 362, y: 426, name: "Goldenleaf Forest" },
+    { x: 362, y: 442, name: "Route 1" },
+
+    { x: 358, y: 470, name: "East Gearen City" },
+    { x: 326, y: 470, name: "West Gearen City" },
+    { x: 360, y: 504, name: "Oceana Pier" },
+    { x: 346, y: 470, name: "Junction Bridge" },
+
+    { x: 458, y: 474, name: "Kecleon Bazaar" },
+    { x: 490, y: 474, name: "Amethyst Grotto" },
+    { x: 488, y: 456, name: "Amethyst Cave" },
+    { x: 490, y: 442, name: "Amethyst Cave" },
+    { x: 490, y: 426, name: "Amethyst Cave" },
+    { x: 490, y: 410, name: "Clifffside Grave" },
+    { x: 486, y: 390, name: "Sheridan Village" },
+    { x: 474, y: 394, name: "Route 3 Gate" },
+    { x: 458, y: 410, name: "Phaisal Cave" },
+    { x: 458, y: 458, name: "River's End" },
+    { x: 458, y: 442, name: "River's End" },
+    { x: 488, y: 360, name: "Carotos Mountain" },
+    { x: 456, y: 360, name: "Mirage Woods" },
+
+    //Terajuma
+    { x: 218, y: 506, name: "Valor Shore" },
+    { x: 218, y: 522, name: "Route 6" },
+    { x: 214, y: 534, name: "Jynobi Pass" },
+    { x: 170, y: 538, name: "Route 5" },
+    { x: 186, y: 538, name: "Jirkula Cavern" },
+    { x: 202, y: 538, name: "Mynori Sea" },
+    { x: 152, y: 536, name: "Aquamarine Cave" },
+    { x: 138, y: 538, name: "Route 5" },
+    { x: 118, y: 534, name: "Teila Resort" },
+    { x: 86, y: 534, name: "Kristiline Town" },
+    { x: 182, y: 582, name: "Kakori Village" },
+    { x: 186, y: 604, name: "Terajuma Jungle" },
+    { x: 170, y: 604, name: "Deep Terajuma Jungle" },
+    { x: 170, y: 604, name: "Deep Terajuma Jungle" },
+    { x: 182, y: 614, name: "Terajuma Shipyard" },
+    { x: 154, y: 618, name: "Terajuma Beach" },
+    { x: 152, y: 584, name: "Tyluric Temple" },
+    { x: 138, y: 586, name: "Mimiura Cave" },
+    { x: 164, y: 570, name: "Mt. Terajuma" },
+
+    { x: 262, y: 506, name: "Helojak Island" },
+    { x: 90, y: 522, name: "Helojak Island" },
+    { x: 88, y: 486, name: "Castillo De La Ángel" },
+  ];
+
+  let currentHoveredName = "";
+
+  //U[dates cursor position and check for locations
+  wrapper.addEventListener('mousemove', (e) => {
+    const rect = wrapper.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    cursor.style.left = `${x}px`; 
+    cursor.style.top = `${y}px`;
+
+    currentHoveredName = "";
+    
+    //Check if the mouse (x,y) falls within the 16x16 of any location
+    for (const loc of mapLocations) {
+      if (x >= loc.x && x <= loc.x + 16 && y >= loc.y && y <= loc.y + 16) {
+        currentHoveredName = loc.name;
+        break; 
+      }
+    }
+
+    hoverLabel.innerText = currentHoveredName;
+  });
+
+  //Click copies to second label AND updatess the iframe sourcew
+  wrapper.addEventListener('click', () => {
+    if (currentHoveredName !== "") {
+      clickLabel.innerText = currentHoveredName;
+      
+      // Update the iframe to load the corresponding HTML page
+      iframeElement.src = currentHoveredName + ".html";
+    }
+  });
+
+  //Show/Hide cursor logic
+  wrapper.addEventListener('mouseenter', () => {
+    cursor.style.display = 'block';
+  });
+
+  wrapper.addEventListener('mouseleave', () => {
+    cursor.style.display = 'none';
+    hoverLabel.innerText = ""; 
+    currentHoveredName = "";
+  });
+</script>
+
+</body>
+</html>
